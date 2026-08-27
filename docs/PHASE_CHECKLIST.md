@@ -30,11 +30,23 @@ bash infra/scripts/migrate.sh
 docker compose -f infra/docker-compose.yml exec api python scripts/create_owner.py --email owner@example.com --name Owner
 ```
 
-## Phase 2 — Profiles and manual trips  (not started)
-- [ ] Traveler, pet, vehicle, trailer, preference profiles + CRUD
-- [ ] Trip, day, stop, lodging, meal, reservation, expense CRUD
-- [ ] Role-based permissions in service layer
-- [ ] Accessible Expo screens
+## Phase 2 — Profiles and manual trips  (DONE)
+- [x] Models: TravelerProfile, Pet, Vehicle, Trailer, Preference (with medical privacy)
+- [x] Itinerary models: TripDay, Stop, LodgingCandidate, MealPlan, Reservation, Expense, PlanningWarning
+- [x] Trip<->profile links (travelers, pets, vehicle, trailer)
+- [x] Service-layer permissions (owner/editor/traveler/viewer + profile sharing)
+- [x] CRUD services + REST routes: trips, members, profiles, plan, expenses
+- [x] Lodging "required accessibility / two-dog" never auto-confirmed (human confirmation only)
+- [x] Deterministic vehicle-completeness blocking warning
+- [x] Alembic migration upgrade/downgrade test (23 tests total passing)
+- [x] Accessible Expo screens: API client (secure token store), Trips list/detail,
+      Profiles list/create, Plan, More, New trip/stop forms (a11y primitives)
+
+### Phase 2 verification commands
+```bash
+cd services/api && pytest            # 23 passing
+# manual: create trip + traveler via API, assign, refresh warnings (blocking)
+```
 
 ## Phase 3 — Deterministic planning + Tennessee seed  (not started)
 - [ ] Google routing/geocoding adapters, route legs, daily division

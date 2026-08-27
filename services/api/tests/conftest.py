@@ -69,3 +69,28 @@ def owner_auth_headers(owner_user, db_session):
         )
     )
     return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture()
+def make_user(db_session):
+    from app.models.accounts import User
+
+    def _make(email: str):
+        u = User(email=email, display_name=email, status="active")
+        db_session.add(u)
+        db_session.flush()
+        return u
+
+    return _make
+
+
+@pytest.fixture()
+def auth_header():
+    from app.config import get_settings
+    from app.services.auth_service import issue_access_token
+
+    def _header(user):
+        token, _ = issue_access_token(user.id, get_settings())
+        return {"Authorization": f"Bearer {token}"}
+
+    return _header

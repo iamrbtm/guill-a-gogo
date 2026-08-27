@@ -20,7 +20,11 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 
 settings = get_settings()
-config.set_main_option("sqlalchemy.url", settings.database_url)
+# Use the explicitly configured URL unless alembic.ini still has its placeholder
+# value; in that case fall back to the application's configured database URL.
+_configured_url = config.get_main_option("sqlalchemy.url") or ""
+if _configured_url.startswith("driver://"):
+    config.set_main_option("sqlalchemy.url", settings.database_url)
 
 
 def run_migrations_offline() -> None:

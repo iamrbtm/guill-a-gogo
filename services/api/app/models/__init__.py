@@ -9,3 +9,19 @@ from app.models.accounts import (  # noqa: F401
     TripMembership,
     User,
 )
+from app.models.itinerary import (  # noqa: F401
+    Expense,
+    LodgingCandidate,
+    MealPlan,
+    PlanningWarning,
+    Reservation,
+    Stop,
+    TripDay,
+)
+from app.models.profiles import (  # noqa: F401
+    Pet,
+    Preference,
+    Trailer,
+    TravelerProfile,
+    Vehicle,
+)

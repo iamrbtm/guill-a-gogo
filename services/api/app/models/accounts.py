@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import JSON, DateTime, ForeignKey, LargeBinary, String, Boolean, Integer
+from sqlalchemy import JSON, DateTime, ForeignKey, LargeBinary, String, Boolean, Integer, Table, Column
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, TimestampMixin, UUIDMixin, utcnow
@@ -109,10 +109,11 @@ class RefreshSession(UUIDMixin, TimestampMixin, Base):
 
 
 class Trip(UUIDMixin, TimestampMixin, Base):
-    """Minimal trip table for FK integrity in Phase 1.
+    """Trip aggregate root.
 
-    Full itinerary schema arrives in Phase 2. Soft deletion and owner are
-    established here because memberships and audit events reference trips.
+    Supports concrete dates or generic day numbers (start_date/end_date are
+    nullable to allow "Day 1, Day 2" planning before dates are known).
+    Soft deletion + optimistic concurrency (version) are established here.
     """
 
     __tablename__ = "trips"
@@ -121,8 +122,38 @@ class Trip(UUIDMixin, TimestampMixin, Base):
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     status: Mapped[str] = mapped_column(String(20), default="draft", nullable=False)
     timezone_policy: Mapped[str] = mapped_column(String(64), default="America/New_York", nullable=False)
+    origin: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    destination: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    start_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    end_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    budget_currency: Mapped[str] = mapped_column(String(3), default="USD", nullable=False)
+    budget_amount: Mapped[int | None] = mapped_column(Integer, nullable=True)  # minor units
+    notes: Mapped[str | None] = mapped_column(String(2000), nullable=True)
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+
+    vehicle_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("vehicles.id", ondelete="SET NULL"), nullable=True
+    )
+    trailer_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("trailers.id", ondelete="SET NULL"), nullable=True
+    )
+
+
+# Reusable-profile <-> trip associations.
+trip_travelers = Table(
+    "trip_travelers",
+    Base.metadata,
+    Column("trip_id", ForeignKey("trips.id", ondelete="CASCADE"), primary_key=True),
+    Column("traveler_profile_id", ForeignKey("traveler_profiles.id", ondelete="CASCADE"), primary_key=True),
+)
+
+trip_pets = Table(
+    "trip_pets",
+    Base.metadata,
+    Column("trip_id", ForeignKey("trips.id", ondelete="CASCADE"), primary_key=True),
+    Column("pet_id", ForeignKey("pets.id", ondelete="CASCADE"), primary_key=True),
+)
 
 
 class TripMembership(UUIDMixin, TimestampMixin, Base):
