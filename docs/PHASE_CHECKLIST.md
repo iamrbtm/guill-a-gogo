@@ -83,9 +83,20 @@ cd services/api && pytest
 # offline: POST /trips/<id>/sync with idempotency_key; re-send returns same status
 ```
 
-## Phase 5 — Research providers + AI proposals  (not started)
-- [ ] Places/meals/lodging/fuel/weather/road-condition adapters
-- [ ] Provider provenance + staleness; schema-validated AI proposals + approval
+## Phase 5 — Research providers + AI proposals  (DONE)
+- [x] ProviderRecord provenance model (provider, fingerprint, retrieved/expires, normalized response, verification, source link)
+- [x] provenance service: record, staleness, fresh-record lookup
+- [x] Provider adapters (fuel/weather/places) gracefully degrade to manual entry when unconfigured
+- [x] AI proposal service: strict pydantic schema; invalid output rejected; proposals are PENDING and never auto-apply
+- [x] Routes: /ai/propose, /fuel, /weather, /places (manual-entry when disabled)
+- [x] Tests: provenance/staleness, AI schema rejection, AI proposal not auto-applied, route validation, graceful providers (38 total passing)
+
+### Phase 5 verification commands
+```bash
+cd services/api && pytest
+# POST /trips/<id>/ai/propose with ai_output -> 201 pending; invalid -> 422
+# GET /trips/<id>/fuel -> status:manual_entry when no provider configured
+```
 
 ## Phase 6 — Exports + hardening  (not started)
 - [ ] PDF/DOCX/XLSX/CSV exports, optional Drive delivery

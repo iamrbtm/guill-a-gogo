@@ -74,7 +74,7 @@ def _register_security_headers(app: Flask, settings) -> None:
 
 
 def _register_blueprints(app: Flask) -> None:
-    from app.routes import auth, expenses, health, plan, profiles, providers, today, trips
+    from app.routes import auth, expenses, health, plan, profiles, providers, research, today, trips
 
     app.register_blueprint(health.bp)
     app.register_blueprint(auth.bp)
@@ -84,6 +84,7 @@ def _register_blueprints(app: Flask) -> None:
     app.register_blueprint(plan.bp)
     app.register_blueprint(expenses.bp)
     app.register_blueprint(today.bp)
+    app.register_blueprint(research.bp)
 
 
 def _register_error_handlers(app: Flask) -> None:

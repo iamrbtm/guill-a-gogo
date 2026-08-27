@@ -169,3 +169,24 @@ class OfflineMutation(UUIDMixin, TimestampMixin, Base):
     status: Mapped[str] = mapped_column(String(20), default="pending", nullable=False)
     error: Mapped[str | None] = mapped_column(String(500), nullable=True)
     created_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+
+
+class ProviderRecord(UUIDMixin, TimestampMixin, Base):
+    """Provenance for every external provider result.
+
+    Records what was asked, when, how fresh it is, and how it was verified, so the
+    UI can mark data as live/cached/manual and never present stale facts as current.
+    """
+
+    __tablename__ = "provider_records"
+
+    trip_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("trips.id", ondelete="CASCADE"), nullable=True, index=True)
+    provider: Mapped[str] = mapped_column(String(40), nullable=False, index=True)
+    provider_id: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    entity_type: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    request_fingerprint: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
+    retrieved_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), nullable=False)
+    expires_at: Mapped[DateTime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    normalized_response: Mapped[dict] = mapped_column(JSON, nullable=False)
+    verification_status: Mapped[str] = mapped_column(String(20), default="unverified", nullable=False)
+    source_link: Mapped[str | None] = mapped_column(String(500), nullable=True)

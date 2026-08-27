@@ -16,6 +16,7 @@ from app.models.itinerary import (  # noqa: F401
     MealPlan,
     OfflineMutation,
     PlanningWarning,
+    ProviderRecord,
     Reservation,
     Stop,
     TripDay,
