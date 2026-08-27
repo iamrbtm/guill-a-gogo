@@ -35,6 +35,11 @@ Used by Phase 3/5 for routing, geocoding, places, and (optionally) weather.
 > Until this key exists, the planner falls back to manual entry and clearly
 > marks route/fuel/geocode data as "manual / unconfirmed".
 
+For **local development only**, `ALLOW_MOCK_PLANNING=1` enables a deterministic
+mock router so you can exercise the planner end-to-end without a key. This is a
+dev convenience and must never be enabled in production (it does not reflect real
+roads).
+
 ---
 
 ## 2. Production domain + passkeys / WebAuthn ✅ (production only)

@@ -7,7 +7,12 @@ from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 from app.services.current_user import resolve_current_user
+import dataclasses
+
+from app.config import get_settings
 from app.services import plan_service
+from app.services.planner import PlanConfig, plan_trip_from_db
+from app.services.providers.routing import ProviderUnavailable, get_routing_provider
 from app.services.serialization import to_dict
 
 bp = Blueprint("plan", __name__, url_prefix="/api/v1")
@@ -128,3 +133,38 @@ def list_reservations(trip_id: uuid.UUID):
     db = _db()
     user = resolve_current_user(db)
     return jsonify([to_dict(r) for r in plan_service.list_reservations(db, user, trip_id)])
+
+
+@bp.route("/trips/<uuid:trip_id>/plan", methods=["POST"])
+def compute_plan(trip_id: uuid.UUID):
+    db = _db()
+    user = resolve_current_user(db)
+    trip = plan_service.get_trip(db, user, trip_id)
+    if trip is None:
+        return jsonify(error="not_found"), 404
+
+    settings = get_settings()
+    try:
+        provider = get_routing_provider(settings.google_maps_api_key, settings.allow_mock_planning)
+    except ProviderUnavailable:
+        return jsonify(
+            error="routing_unavailable",
+            message="No routing provider configured. Add GOOGLE_MAPS_API_KEY or enter route data manually.",
+        ), 503
+
+    body = request.get_json(silent=True) or {}
+    config = PlanConfig(
+        target_daily_driving_hours=body.get("target_daily_driving_hours", 7.0),
+        max_daily_driving_hours=body.get("max_daily_driving_hours", 8.0),
+        break_interval_hours=body.get("break_interval_hours", 2.0),
+        tank_gallons=body.get("tank_gallons"),
+        towing_mpg=body.get("towing_mpg"),
+        fuel_price_per_gallon=body.get("fuel_price_per_gallon"),
+        range_reserve_mi=body.get("range_reserve_mi", 30.0),
+    )
+    try:
+        result = plan_trip_from_db(db, trip, config, provider)
+    except ProviderUnavailable as exc:
+        return jsonify(error="routing_unavailable", message=str(exc)), 503
+
+    return jsonify(dataclasses.asdict(result))

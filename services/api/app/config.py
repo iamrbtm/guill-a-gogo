@@ -100,6 +100,11 @@ class Settings:
     google_maps_api_key: Optional[str] = field(
         default_factory=lambda: os.environ.get("GOOGLE_MAPS_API_KEY")
     )
+    # Dev-only: allow the deterministic mock router for local planning demos.
+    # Never enable in production (it does not reflect real roads).
+    allow_mock_planning: bool = field(
+        default_factory=lambda: _env_flag("ALLOW_MOCK_PLANNING", False)
+    )
 
     # Security
     cors_allowed_origins: list[str] = field(

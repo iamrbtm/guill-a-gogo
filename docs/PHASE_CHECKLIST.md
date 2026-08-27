@@ -48,10 +48,24 @@ cd services/api && pytest            # 23 passing
 # manual: create trip + traveler via API, assign, refresh warnings (blocking)
 ```
 
-## Phase 3 — Deterministic planning + Tennessee seed  (not started)
-- [ ] Google routing/geocoding adapters, route legs, daily division
-- [ ] Breaks, fuel calculations, warnings, alternatives
-- [ ] Repeatable Tennessee-trip import fixture
+## Phase 3 — Deterministic planning + Tennessee seed  (DONE)
+- [x] Routing provider interface (RoutingProvider) + MockRoutingProvider + GoogleRoutingProvider stub
+- [x] Provider degrades gracefully (ProviderUnavailable -> manual entry; never invents distances)
+- [x] Deterministic planner: daily division, wheel-turning vs break time, breaks every ~2h,
+     fuel gallons/stops/cost from MPG + tank + price + reserve, warnings, single-leg overflow
+- [x] Repeatable Tennessee seed (Mother/Jeremy/Nephew, 2 unnamed dogs, incomplete vehicle ->
+     blocking warning, 8 required stops). Idempotent via deterministic UUIDs + CLI.
+- [x] `/trips/<id>/plan` endpoint (Google when keyed; mock only under ALLOW_MOCK_PLANNING; else 503)
+- [x] Tests: planner division/breaks/fuel, single-leg overflow, provider degradation, seed fixture, plan endpoint (29 total passing)
+
+### Phase 3 verification commands
+```bash
+cd services/api && pytest
+ALLOW_MOCK_PLANNING=1 python -m pytest tests/test_phase3.py
+# end-to-end seed:
+docker compose ... exec api python scripts/create_owner.py --email owner@example.com --name Owner
+docker compose ... exec api python scripts/seed_tennessee.py --email owner@example.com
+``` fixture
 
 ## Phase 4 — Today mode + offline  (not started)
 - [ ] Today dashboard, nav deep links, progress updates
