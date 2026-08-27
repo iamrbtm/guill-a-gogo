@@ -138,6 +138,7 @@ class Trip(UUIDMixin, TimestampMixin, Base):
     trailer_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("trailers.id", ondelete="SET NULL"), nullable=True
     )
+    applied_delay_minutes: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
 
 # Reusable-profile <-> trip associations.

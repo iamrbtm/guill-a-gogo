@@ -124,3 +124,48 @@ class PlanningWarning(UUIDMixin, TimestampMixin, Base):
     severity: Mapped[str] = mapped_column(String(20), default="warning", nullable=False)
     message: Mapped[str] = mapped_column(String(1000), nullable=False)
     source: Mapped[str | None] = mapped_column(String(80), nullable=True)
+
+
+class ChangeProposal(UUIDMixin, TimestampMixin, Base):
+    """A proposed itinerary change requiring human approval.
+
+    Used by delay handling (and later AI proposals). The stored itinerary is
+    NEVER mutated until an Owner/Editor approves. `before`/`after` hold the
+    affected schedule slices as JSON.
+    """
+
+    __tablename__ = "change_proposals"
+
+    trip_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("trips.id", ondelete="CASCADE"), nullable=False, index=True)
+    kind: Mapped[str] = mapped_column(String(40), default="delay_revision", nullable=False)
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    before: Mapped[dict] = mapped_column(JSON, nullable=False)
+    after: Mapped[dict] = mapped_column(JSON, nullable=False)
+    assumptions: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    warnings: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    status: Mapped[str] = mapped_column(String(20), default="pending", nullable=False)
+    created_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    approved_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    approved_at: Mapped[DateTime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class OfflineMutation(UUIDMixin, TimestampMixin, Base):
+    """Mutation queued on a device while offline; replayed via the sync endpoint.
+
+    Idempotency is enforced by `idempotency_key`. Conflicting edits are detected
+    by comparing the entity's current version against `base_version` (optimistic
+    concurrency) and surfaced as `conflict` rather than last-write-wins.
+    """
+
+    __tablename__ = "offline_mutations"
+
+    trip_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("trips.id", ondelete="CASCADE"), nullable=False, index=True)
+    idempotency_key: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
+    entity_type: Mapped[str] = mapped_column(String(40), nullable=False)
+    entity_id: Mapped[uuid.UUID | None] = mapped_column(nullable=True)
+    operation: Mapped[str] = mapped_column(String(20), nullable=False)
+    payload_json: Mapped[dict] = mapped_column(JSON, nullable=False)
+    base_version: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    status: Mapped[str] = mapped_column(String(20), default="pending", nullable=False)
+    error: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    created_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)

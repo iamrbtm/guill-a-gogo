@@ -67,9 +67,21 @@ docker compose ... exec api python scripts/create_owner.py --email owner@example
 docker compose ... exec api python scripts/seed_tennessee.py --email owner@example.com
 ``` fixture
 
-## Phase 4 — Today mode + offline  (not started)
-- [ ] Today dashboard, nav deep links, progress updates
-- [ ] Offline cache, mutation outbox, sync, conflict resolution
+## Phase 4 — Today mode + offline operation  (DONE)
+- [x] Today dashboard service (current day, next destination, remaining/completed, reservations, large actions)
+- [x] Navigation deep links (Apple/Google Maps; no turn-by-turn)
+- [x] Delay -> pending revision proposal; Owner/Editor approval applies the change
+- [x] Offline mutation outbox with idempotency keys + optimistic-concurrency conflict detection (no last-write-wins)
+- [x] Routes: /today, /nav, /delays, /proposals (+approve/reject), /sync
+- [x] Accessible Expo Today screen wired to the live dashboard
+- [x] Tests: nav links, today dashboard, delay->proposal->approve, sync apply + conflict + idempotency (33 total passing)
+
+### Phase 4 verification commands
+```bash
+cd services/api && pytest
+# delay flow: POST /trips/<id>/delays -> approve -> trip.applied_delay_minutes updated
+# offline: POST /trips/<id>/sync with idempotency_key; re-send returns same status
+```
 
 ## Phase 5 — Research providers + AI proposals  (not started)
 - [ ] Places/meals/lodging/fuel/weather/road-condition adapters

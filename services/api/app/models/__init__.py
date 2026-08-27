@@ -10,9 +10,11 @@ from app.models.accounts import (  # noqa: F401
     User,
 )
 from app.models.itinerary import (  # noqa: F401
+    ChangeProposal,
     Expense,
     LodgingCandidate,
     MealPlan,
+    OfflineMutation,
     PlanningWarning,
     Reservation,
     Stop,
