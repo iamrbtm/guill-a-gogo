@@ -1,0 +1,25 @@
+# Development overrides: publish database/redis ports and relax restart.
+# Usage: docker compose -f infra/docker-compose.yml -f infra/docker-compose.override.yml up
+
+services:
+  postgres:
+    ports:
+      - "5432:5432"
+  redis:
+    ports:
+      - "6379:6379"
+  api:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.api
+    command: ["python", "-m", "flask", "--app", "app", "run", "--host", "0.0.0.0", "--port", "8000"]
+    volumes:
+      - ./services/api/app:/app/app
+      - ./services/api/migrations:/app/migrations
+    ports:
+      - "8000:8000"
+  worker:
+    volumes:
+      - ./services/api/app:/app/app
+  backup:
+    entrypoint: ["/bin/sh", "-c", "while true; do sleep 86400; done"]

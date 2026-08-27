@@ -1,0 +1,44 @@
+[project]
+name = "guill-a-gogo-api"
+version = "0.1.0"
+description = "Accessible pet-friendly road trip planner API"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "flask>=3.0",
+    "flask-cors>=4.0",
+    "flask-limiter>=3.5",
+    "sqlalchemy>=2.0",
+    "alembic>=1.13",
+    "psycopg[binary]>=3.1",
+    "celery>=5.4",
+    "redis>=5.0",
+    "pyjwt>=2.8",
+    "pydantic>=2.6",
+    "webauthn>=2.0",
+    "bcrypt>=4.1",
+    "python-dotenv>=1.0",
+    "gunicorn>=22.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "freezegun>=1.5",
+]
+
+[build-system]
+requires = ["poetry-core>=1.9"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+packages = [{ include = "app", from = "." }]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.coverage.run]
+source = ["app"]
+omit = ["tests/*", "app/db/migrate.py"]

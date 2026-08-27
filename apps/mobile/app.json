@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "name": "Guill-a-Gogo",
+    "slug": "guill-a-gogo",
+    "scheme": "guill",
+    "version": "0.1.0",
+    "orientation": "default",
+    "platforms": ["ios", "android", "web"],
+    "web": { "bundler": "metro" },
+    "plugins": ["expo-router", "expo-secure-store"],
+    "experiments": { "typedRoutes": true },
+    "ios": { "supportsTablet": true, "bundleIdentifier": "com.guill.example" },
+    "android": { "package": "com.guill.example" }
+  }
+}

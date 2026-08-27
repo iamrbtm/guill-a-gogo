@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+jobs:
+  api-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: app
+          POSTGRES_DB: guill
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U app" --health-interval 10s
+          --health-timeout 5s --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - name: Install
+        working-directory: services/api
+        run: |
+          python -m venv .venv && . .venv/bin/activate
+          pip install -e ".[dev]"
+      - name: Lint (ruff if present)
+        working-directory: services/api
+        run: |
+          . .venv/bin/activate
+          pip install ruff || true
+          ruff check app || true
+      - name: Tests
+        working-directory: services/api
+        env:
+          APP_ENV: test
+          DATABASE_URL: postgresql+psycopg://app:app@localhost:5432/guill
+          JWT_SECRET: ci-secret-please-rotate-0123456789abcdef
+          RP_ID: localhost
+          RP_ORIGIN: http://localhost:3000
+        run: |
+          . .venv/bin/activate
+          pytest --cov=app --cov-fail-under=60
+
+  mobile-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install (skip if no lockfile)
+        working-directory: apps/mobile
+        run: npm install || true
+      - name: Typecheck
+        working-directory: apps/mobile
+        run: npx tsc --noEmit || true

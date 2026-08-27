@@ -1,0 +1,200 @@
+openapi: 3.1.0
+info:
+  title: Guill-a-Gogo API
+  version: "0.1.0"
+  description: Accessible, pet-friendly road trip planner (Phase 1 foundation)
+servers:
+  - url: https://api.guill.example/api/v1
+    description: Production
+  - url: http://localhost:8000/api/v1
+    description: Local dev
+security:
+  - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Invitation:
+      type: object
+      properties:
+        invitation_id: { type: string, format: uuid }
+        token: { type: string }
+        link: { type: string }
+        expires_at: { type: string, format: date-time }
+        role: { type: string, enum: [owner, editor, traveler, viewer] }
+    TokenPair:
+      type: object
+      properties:
+        access_token: { type: string }
+        refresh_token: { type: string }
+        token_type: { type: string }
+    RegisterResult:
+      type: object
+      properties:
+        tokens: { $ref: "#/components/schemas/TokenPair" }
+        recovery_codes: { type: array, items: { type: string } }
+    ProviderStatus:
+      type: object
+      properties:
+        providers:
+          type: object
+          properties:
+            google_maps: { type: boolean }
+            ai: { type: string, nullable: true }
+            email: { type: string }
+paths:
+  /health:
+    get:
+      security: []
+      responses:
+        "200": { description: ok }
+  /provider-status:
+    get:
+      security: []
+      responses:
+        "200":
+          description: provider configuration status (no secrets)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ProviderStatus" }
+  /invitations:
+    post:
+      summary: Create an invitation (owner only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string }
+                role: { type: string, enum: [owner, editor, traveler, viewer] }
+                trip_id: { type: string, format: uuid }
+      responses:
+        "201": { description: created, content: { application/json: { schema: { $ref: "#/components/schemas/Invitation" } } } }
+        "401": { description: unauthorized }
+        "400": { description: invalid role }
+  /invitations/{token}:
+    get:
+      security: []
+      parameters:
+        - { name: token, in: path, required: true, schema: { type: string } }
+      responses:
+        "200": { description: invitation details }
+        "404": { description: invalid/expired }
+  /auth/register/options:
+    post:
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                invitation_token: { type: string }
+      responses:
+        "200": { description: registration options }
+  /auth/register:
+    post:
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                invitation_token: { type: string }
+                challenge_id: { type: string }
+                credential: { type: object }
+                display_name: { type: string }
+                device_name: { type: string }
+      responses:
+        "201": { description: registered, content: { application/json: { schema: { $ref: "#/components/schemas/RegisterResult" } } } }
+  /auth/login/options:
+    post:
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string }
+      responses:
+        "200": { description: authentication options }
+        "404": { description: invalid credentials }
+  /auth/login:
+    post:
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string }
+                challenge_id: { type: string }
+                credential: { type: object }
+                device_name: { type: string }
+      responses:
+        "200": { description: tokens, content: { application/json: { schema: { $ref: "#/components/schemas/TokenPair" } } } }
+  /auth/refresh:
+    post:
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh_token: { type: string }
+      responses:
+        "200": { description: new tokens }
+        "401": { description: invalid refresh }
+  /auth/logout:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh_token: { type: string }
+      responses:
+        "200": { description: ok }
+  /auth/recovery/request:
+    post:
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string }
+      responses:
+        "200": { description: ok }
+  /auth/recovery-code:
+    post:
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string }
+                code: { type: string }
+      responses:
+        "200": { description: short-lived access token }
+        "401": { description: invalid }
