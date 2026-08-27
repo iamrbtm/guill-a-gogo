@@ -35,7 +35,7 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      test: ["CMD", "curl", "-f", "http://localhost:8100/healthz"]
       interval: 30s
       timeout: 5s
       retries: 5
@@ -68,7 +68,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512M
+          memory: 1G
     networks:
       - internal
 
