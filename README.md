@@ -5,8 +5,7 @@ mobility limitations, sensory considerations, pets, and a trailer. Built per the
 master prompt (`docs/OpenCode_Accessible_Road_Trip_Planner_Master_Prompt.md`).
 
 ## Status
-**Phase 1 (Foundation & authentication) — in progress / functionally complete.**
-See `docs/PHASE_CHECKLIST.md` for per-phase status and verification commands.
+**All six phases complete and pushed.** See `docs/PHASE_CHECKLIST.md` for per-phase status and verification commands.
 
 ## Architecture (modular monolith)
 ```
@@ -50,5 +49,9 @@ CI: `.github/workflows/ci.yml` runs lint + tests (API) and typecheck (mobile).
 - `docs/KEYS_GUIDE.md` — obtaining every external key
 - `docs/adr/0001-phase1-foundation.md` — architecture decisions
 - `docs/THREAT_MODEL.md` — security threat model
+- `docs/SECURITY_REVIEW.md` — security review
+- `docs/A11Y_AUDIT.md` — accessibility audit
+- `docs/RELEASE_CHECKLIST.md` — release checklist
+- `docs/KNOWN_LIMITATIONS.md` — known limitations & deferred enhancements
 - `docs/PHASE_CHECKLIST.md` — phase progress + verification commands
 - `infra/runbooks/BACKUP_RESTORE.md` — backup/restore

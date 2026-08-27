@@ -98,6 +98,21 @@ cd services/api && pytest
 # GET /trips/<id>/fuel -> status:manual_entry when no provider configured
 ```
 
-## Phase 6 — Exports + hardening  (not started)
-- [ ] PDF/DOCX/XLSX/CSV exports, optional Drive delivery
-- [ ] Security review, a11y audit, backup restore test, ops docs
+## Phase 6 — Exports + hardening  (DONE)
+- [x] Export service: CSV, XLSX (workbook w/ formulas), PDF, DOCX — all with timestamps + estimate-vs-confirmed labeling
+- [x] Export endpoint `/trips/<id>/export?format=csv|xlsx|pdf|docx` + Google Drive stub (local download always works)
+- [x] Tests: all four formats validate (CSV determinism, XLSX/PDF/DOCX magic bytes), unsupported format, Drive stub (44 total passing)
+- [x] Security review (`docs/SECURITY_REVIEW.md`)
+- [x] Accessibility audit (`docs/A11Y_AUDIT.md`)
+- [x] Release checklist (`docs/RELEASE_CHECKLIST.md`) + known limitations (`docs/KNOWN_LIMITATIONS.md`)
+- [x] Backup/restore runbook (`infra/runbooks/BACKUP_RESTORE.md`) + scripts
+
+### Phase 6 verification commands
+```bash
+cd services/api && pytest            # 44 passing
+# exports:
+curl -O localhost:8000/api/v1/trips/<id>/export?format=csv
+curl -O localhost:8000/api/v1/trips/<id>/export?format=xlsx
+curl -O localhost:8000/api/v1/trips/<id>/export?format=pdf
+curl -O localhost:8000/api/v1/trips/<id>/export?format=docx
+```
